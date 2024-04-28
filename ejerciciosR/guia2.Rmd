@@ -1,0 +1,233 @@
+---
+title: "guia2"
+output: pdf_document
+date: "2024-04-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejercicio 7.f
+
+```{r}
+muestra <- c(1.53, 1.65, 1.72, 1.83, 1.62, 1.75, 1.72, 1.68, 1.65, 1.61, 1.70, 1.60, 1.73, 1.61, 1.52, 1.81, 1.72, 1.50, 1.51, 1.65, 1.58, 1.82, 1.65, 1.72, 1.65)
+
+u_EMV <- mean(muestra)
+sigma2_EMV <- 0
+for (k in muestra){
+  sigma2_EMV <- sigma2_EMV + (k - u_EMV)^2
+}
+sigma2_EMV <- sigma2_EMV*(1/length(muestra))
+```
+
+## Ejercicio 14.a
+
+```{r}
+# Generar 100 datos con distribución exponencial
+muestra <- rexp(100, rate = 1)  
+
+FnReal <- function(x, lambda){
+  return(1-exp(-lambda*x))
+} 
+Fn1 <- ecdf(muestra)
+plot(Fn1, main='Comparacion estimacion vs. teoria', col='blue') # Distribucion acumulada de la muestra
+x <- seq(0, 5, length.out = 500)
+datos_teoricos <- FnReal(x, 1) # lambda=1
+lines(x, datos_teoricos, col='red', type='l', lwd=2)
+legend('topleft',legend=c('ecdf(x)', 'F(x)'), fill=c('blue', 'red'))
+
+```
+
+## Ejercicio 14.b
+
+El estimador basado en el primer momento es $\hat{\theta}_{1MOM}=\frac{1}{\bar{X}}$ El estimador basado en el segundo momento es $\hat{\theta}_{2MOM}=\sqrt{\frac{2}{\bar{X^2}}}$ El estimador de maxima verosimilitud es $\hat{\theta}_{MV}=\frac{1}{\bar{X}}$
+
+```{r}
+theta_1m = 1/mean(muestra)
+theta_2m = sqrt(2/mean(muestra^2))
+cat('El estimador basado en el primer momento o por maxima verosimilitud: ',theta_1m, "\n")
+cat('El estimador basado en el segundo momento: ',theta_2m)
+
+```
+
+## Ejercicio 14.d
+
+Para $n=10$, tenemos:
+
+```{r}
+muestra <- rexp(10, rate = 1)  
+
+Fn1 <- ecdf(muestra)
+plot(Fn1, main='Comparacion estimacion vs. teoria (n=10)', col='blue') # Distribucion acumulada de la muestra
+lines(x, datos_teoricos, col='red', type='l', lwd=2)
+legend('topleft',legend=c('ecdf(x)', 'F(x)'), fill=c('blue', 'red'))
+```
+
+```{r}
+theta_1m = 1/mean(muestra)
+theta_2m = sqrt(2/mean(muestra^2))
+cat('El estimador basado en el primer momento o por maxima verosimilitud con n=10: ',theta_1m, "\n")
+cat('El estimador basado en el segundo momento con n=10: ',theta_2m)
+```
+
+Para $n=1000$, tenemos:
+
+```{r}
+muestra <- rexp(1000, rate = 1)  
+
+Fn1 <- ecdf(muestra)
+plot(Fn1, main='Comparacion estimacion vs. teoria (n=10)', col='blue') # Distribucion acumulada de la muestra
+lines(x, datos_teoricos, col='red', type='l', lwd=2)
+legend('topleft',legend=c('ecdf(x)', 'F(x)'), fill=c('blue', 'red'))
+```
+
+```{r}
+theta_1m = 1/mean(muestra)
+theta_2m = sqrt(2/mean(muestra^2))
+cat('El estimador basado en el primer momento o por maxima verosimilitud con n=10: ',theta_1m, "\n")
+cat('El estimador basado en el segundo momento con n=10: ',theta_2m)
+```
+
+## Ejercicio 15.a
+
+```{r}
+n <- 6
+muestra_uniforme <- runif(n, min = 0, max = 3)
+
+est_mv <- max(muestra_uniforme)
+est_mom <- 2*mean(muestra_uniforme)
+est_mv_mod <- ((n+1)/n)*est_mv
+
+cat("El estimador de maxima verosimilitud es: ", est_mv, "\n")
+cat("El estimador de momentos es: ", est_mom, "\n")
+cat("El estimador de maxima verosimilitud insesgado es: ", est_mv_mod, "\n")
+
+```
+```{r}
+
+ests_mv <- c()
+ests_mom <- c()
+ests_mv_mod <- c()
+
+for (k in 1:1000){
+  n <- 6
+  muestra_uniforme <- runif(n, min = 0, max = 3)
+  
+  ests_mv <- c(ests_mv, max(muestra_uniforme))
+  ests_mom <- c(ests_mom, 2*mean(muestra_uniforme))
+  ests_mv_mod <- c(ests_mv_mod, ((n+1)/n)*max(muestra_uniforme))
+}
+
+plot(1:1000, main="Estimador Max. Verosimilitud", ests_mv, col='blue', xlab='', ylab='')
+plot(1:1000, main="Estimador Momentos", ests_mom, col='red', xlab='', ylab='')
+plot(1:1000, main="Estimador Max. Verosimilitud Insesgado", ests_mv_mod, col='green', xlab='', ylab='')
+
+```
+Podemos ver que como el estimador de maxima verosimilitud es el maximo, y nosotros generamos datos aleatorios entre 0 y 3, nunca va a ser mayor a 3. Por otro lado, en el estimador de momentos al ser 2 veces el promedio de los datos, los estimadores se encuentran mas dispersos al rededor del 3. Finalmente el estimador de maxima verosimilitud insesgado se comporta ligeramente similar al estimador de maxima verosimilitud, pero al estar multiplicado por 7/6 (~1.16) va a alcanzar valores cercanos a 3.48.
+
+```{r}
+ests_mv_matriz <- matrix(nrow = 0, ncol = 1000)
+ests_mom_matriz <- matrix(nrow = 0, ncol = 1000)
+ests_mv_mod_matriz <- matrix(nrow = 0, ncol = 1000)
+
+for (n in c(10,20,40,80,200)){
+  ests_mv <- c()
+  ests_mom <- c()
+  ests_mv_mod <- c()
+  
+  for (k in 1:1000){
+    muestra_uniforme <- runif(n, min = 0, max = 3)
+    
+    ests_mv <- c(ests_mv, max(muestra_uniforme))
+    ests_mom <- c(ests_mom, 2*mean(muestra_uniforme))
+    ests_mv_mod <- c(ests_mv_mod, ((n+1)/n)*max(muestra_uniforme))
+  }
+  
+  ests_mv_matriz <- rbind(ests_mv_matriz, ests_mv)
+  ests_mom_matriz <- rbind(ests_mom_matriz, ests_mom)
+  ests_mv_mod_matriz <- rbind(ests_mv_mod_matriz, ests_mv_mod)
+}
+
+```
+
+```{r}
+plot(1:100, sample(ests_mv_matriz[1, ],100), col='blue')
+points(1:100, sample(ests_mv_matriz[2, ],100), col='red')
+points(1:100, sample(ests_mv_matriz[3, ],100), col='green')
+points(1:100, sample(ests_mv_matriz[4, ],100), col='violet')
+points(1:100, sample(ests_mv_matriz[5, ],100), col='yellow')
+
+```
+```{r}
+ecms_mv <- c()
+ecms_mom <- c()
+ecms_mv_mod <- c()
+
+for (n in 1:5){
+  error_mv <- 0
+  error_mom <- 0
+  error_mv_mod <- 0
+  
+  for (k in 1:1000){
+    error_mv <- error_mv + (ests_mv_matriz[n,k]-3)^2
+    error_mom <- error_mom + (ests_mom_matriz[n,k]-3)^2
+    error_mv_mod <- error_mv_mod + (ests_mv_mod_matriz[n,k]-3)^2
+  }
+  
+  ecms_mv <- c(ecms_mv, error_mv)
+  ecms_mom <- c(ecms_mom, error_mom)
+  ecms_mv_mod <- c(ecms_mv_mod, error_mv_mod)
+}
+
+cat("Los ECM's de los estimadores de maxima verosimilitud son: ", ecms_mv, "\n")
+cat("Los ECM's de los estimadores de momentos son: ", ecms_mom, "\n")
+cat("Los ECM's de los estimadores de maxima verosimilitud insesgado son: ", ecms_mv_mod, "\n")
+
+```
+## Ejercicio 15.b
+```{r}
+n10 <- ests_mv_matriz[1, ]
+n20 <- ests_mv_matriz[2, ]
+n40 <- ests_mv_matriz[3, ]
+n80 <- ests_mv_matriz[4, ]
+n200 <- ests_mv_matriz[5, ]
+
+estimadores <- list(n10, n20, n40, n80, n200)
+
+boxplot(estimadores, xlim = c(1, length(estimadores) + 1), col='blue')
+abline(h = 3, col = "red", lty = 2)
+```
+```{r}
+n10 <- ests_mom_matriz[1, ]
+n20 <- ests_mom_matriz[2, ]
+n40 <- ests_mom_matriz[3, ]
+n80 <- ests_mom_matriz[4, ]
+n200 <- ests_mom_matriz[5, ]
+
+estimadores <- list(n10, n20, n40, n80, n200)
+
+boxplot(estimadores, xlim = c(1, length(estimadores) + 1), col='blue')
+abline(h = 3, col = "red", lty = 2)
+```
+```{r}
+n10 <- ests_mv_mod_matriz[1, ]
+n20 <- ests_mv_mod_matriz[2, ]
+n40 <- ests_mv_mod_matriz[3, ]
+n80 <- ests_mv_mod_matriz[4, ]
+n200 <- ests_mv_mod_matriz[5, ]
+
+estimadores <- list(n10, n20, n40, n80, n200)
+
+boxplot(estimadores, xlim = c(1, length(estimadores) + 1), col='blue')
+abline(h = 3, col = "red", lty = 2)
+```
+```{r}
+plot(ecms_mv, type='l', col='red', lwd=2, xlab='n', ylab='ECM', xaxt = "n")
+lines(ecms_mom, type='l', col='blue', lwd=2)
+lines(ecms_mv_mod, type='l', col='violet', lwd=2)
+legend("topright", legend = c("EMV", "EMOM", "EMV_MOD"), 
+       fill = c("red", "blue", "violet"))
+axis(side = 1, at = c(1,2,3,4,5), labels=c(10,20,40,80,200))
+```
+
